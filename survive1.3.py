@@ -1,24 +1,30 @@
+
 #!/usr/bin/env python3
+#This script is experimental and subbject to change
+#you can change the wall shading by replacing character shade=" .:-=+*#%@"
 import curses, math, time, random
 
 MAP_WIDTH = 50
 MAP_HEIGHT = 25
 FOV = math.pi/3
 DEPTH = 20
-SCREEN_WIDTH = 80
+SCREEN_WIDTH = 70
 SCREEN_HEIGHT = 25
 
-MAX_MONSTERS_BASE = 10
+MAX_MONSTERS_BASE = 8
 MAX_AMMO = 10
 MAX_HEALTH = 5
 NUM_BOXES = 3
+
+show_gun = True
+current_weapon = 1
+GUN_OFFSET = 0
 
 def generate_map():
     MAP = ['#'*MAP_WIDTH]
     for _ in range(MAP_HEIGHT-2):
         MAP.append('#' + '.'*(MAP_WIDTH-2) + '#')
     MAP.append('#'*MAP_WIDTH)
-
     for _ in range(NUM_BOXES):
         w = random.randint(3,6)
         h = random.randint(2,4)
@@ -104,15 +110,46 @@ def move_enemies(enemies,player_x,player_y):
             e['anim'] = (e['anim']+1)%2
     return dmg
 
-def draw_gun(stdscr,recoil):
-    gun_art=[
-        r"     ⌖      ",
-        r"    |^|      ",
-        r"   /| |\     ",
-        r"  /_| |_\\   "
+WEAPON_ART = {
+    1: [  # Pistol
+        r"         ||         ",
+        r"        |==|        ",
+        r"        |  |        ",
+        r"       /|  |\       ",
+        r"      | |  | |      ",
+    ],
+    2: [  # Shotgun
+        r"         ||||        ",
+        r"        |=||=|       ",
+        r"        | || |       ",
+        r"       /| || |\      ",
+        r"      | | || | |     ",
+    ],
+    3: [  # Rifle
+        r"         |||         ",
+        r"        |===|       ",
+        r"        |   |       ",
+        r"       /|   |\      ",
+        r"      | |   | |     ",
+        r"     /  |___|  \    ",
+    ],
+    4: [  # Plasma / sci-fi
+        r"        |||||       ",
+        r"        |###|       ",
+        r"        |###|       ",
+        r"       /|###|\      ",
+        r"      | |###| |     ",
     ]
-    for i,line in enumerate(gun_art):
-        stdscr.addstr(SCREEN_HEIGHT-5+i-recoil, SCREEN_WIDTH//2 - len(line)//2, line, curses.color_pair(3))
+}
+
+def draw_gun(stdscr, recoil):
+    if not show_gun: return
+    gun_art = WEAPON_ART[current_weapon]
+    for i, line in enumerate(gun_art):
+        stdscr.addstr(SCREEN_HEIGHT - len(gun_art) - GUN_OFFSET + i - recoil,
+                      SCREEN_WIDTH//2 - len(line)//2,
+                      line,
+                      curses.color_pair(3))
 
 def draw_entities(stdscr,player_x,player_y,player_angle,enemies,pickups,bullets):
     for e in enemies:
@@ -135,7 +172,8 @@ def draw_entities(stdscr,player_x,player_y,player_angle,enemies,pickups,bullets)
             for i, line in enumerate(monster_art):
                 y = start+i
                 if 0<=y<SCREEN_HEIGHT-5:
-                    stdscr.addstr(y, col, line, curses.color_pair(2))
+                    color = curses.color_pair(7)
+                    stdscr.addstr(y, col, line, color)
 
     for p in pickups:
         if p['taken']: continue
@@ -150,8 +188,9 @@ def draw_entities(stdscr,player_x,player_y,player_angle,enemies,pickups,bullets)
             col = max(0, min(SCREEN_WIDTH-2, col))
             row = SCREEN_HEIGHT//2
 
-            symbol = '⁠♡' if p['type']=='health' else '⌐╦╦═─'
-            stdscr.addstr(row, col, symbol, curses.color_pair(6 if p['type']=='health' else 4))
+            symbol = '♡' if p['type']=='health' else '⌐╦╦═─'
+            color = curses.color_pair(6) if p['type']=='health' else curses.color_pair(4)
+            stdscr.addstr(row, col, symbol, color)
 
     for b in bullets:
         dx = b['x'] - player_x
@@ -194,25 +233,24 @@ def title_screen(stdscr):
     curses.start_color()
     curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_BLACK)
     curses.init_pair(2, curses.COLOR_CYAN, curses.COLOR_BLACK)
-
     title = "SURVIVE!! SHEIKHS PyFPS GAME"
     subtitle = "Press ENTER to start"
     height, width = stdscr.getmaxyx()
     stdscr.addstr(height//2-1, width//2 - len(title)//2, title, curses.color_pair(1) | curses.A_BOLD)
     stdscr.addstr(height//2+1, width//2 - len(subtitle)//2, subtitle, curses.color_pair(2))
-
     while True:
         key = stdscr.getch()
         if key in (curses.KEY_ENTER, 10, 13):
             break
 
 def game_loop(stdscr):
+    global show_gun, current_weapon
     while True:
         wave = 1
         player_x,player_y = MAP_WIDTH/2, MAP_HEIGHT/2
         player_angle = 0.0
-        player_health = 20
-        ammo = 20
+        player_health = 25
+        ammo = 25
         total_score = 0
 
         curses.curs_set(0)
@@ -220,12 +258,12 @@ def game_loop(stdscr):
         stdscr.timeout(50)
         curses.start_color()
         curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
-        curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
-        curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+        curses.init_pair(2, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
+        curses.init_pair(3, curses.COLOR_BLUE, curses.COLOR_BLACK)
         curses.init_pair(4, curses.COLOR_GREEN, curses.COLOR_BLACK)
         curses.init_pair(5, curses.COLOR_YELLOW, curses.COLOR_BLACK)
         curses.init_pair(6, curses.COLOR_CYAN, curses.COLOR_BLACK)
-        curses.init_pair(7, curses.COLOR_BLUE, curses.COLOR_BLACK)
+        curses.init_pair(7, curses.COLOR_RED, curses.COLOR_BLACK)
 
         while player_health>0:
             bullets=[]
@@ -242,17 +280,18 @@ def game_loop(stdscr):
 
                 for y in range(SCREEN_HEIGHT-5):
                     for x in range(SCREEN_WIDTH):
-                        ceiling = SCREEN_HEIGHT/2 - SCREEN_HEIGHT/rays[x]
+                        distance = rays[x]
+                        ceiling = SCREEN_HEIGHT/2 - SCREEN_HEIGHT/distance
                         floor = SCREEN_HEIGHT - ceiling
-                        if y<ceiling:
-                            stdscr.addch(y,x,' ', curses.color_pair(1))
-                        elif y<=floor:
-                            shade=" .:-=+*#%@"
-                            wall_height=int(SCREEN_HEIGHT/rays[x])
-                            ch=shade[min(len(shade)-1,wall_height)]
-                            stdscr.addch(y,x,ch, curses.color_pair(1))
+                        if y < ceiling:
+                            stdscr.addch(y, x, ' ', curses.color_pair(6))
+                        elif y <= floor:
+                            shade = [' ', '.', ',', '-', '~', ':', '%', '$', '&', '#', '@', '▓']
+                            idx = int((distance / DEPTH) * (len(shade)-1))
+                            ch = shade[len(shade)-1 - idx]
+                            stdscr.addch(y,x,ch,curses.color_pair(1))
                         else:
-                            stdscr.addch(y,x,'.', curses.color_pair(7))
+                            stdscr.addch(y,x,'.',curses.color_pair(5))
 
                 draw_gun(stdscr,recoil)
                 draw_entities(stdscr,player_x,player_y,player_angle,enemies,pickups,bullets)
@@ -260,7 +299,7 @@ def game_loop(stdscr):
 
                 alive_monsters = sum(1 for e in enemies if e['alive'])
                 score = total_score + kills*10 + elapsed
-                stdscr.addstr(0,0,f"Wave: {wave} | Health: {player_health} | Ammo: {ammo} | Monsters: {alive_monsters} | Time: {elapsed}s | Score: {score} | Shoot: SPACE | Quit: Q")
+                stdscr.addstr(0,0,f"Wave: {wave} | Health: {player_health} | Ammo: {ammo} | Monsters: {alive_monsters} | Time: {elapsed}s | Score: {score} | Shoot: SPACE | Quit: Q | Toggle Gun: G | Weapons 1-4")
 
                 bullets,new_kills = update_bullets(bullets,enemies)
                 kills += new_kills
@@ -270,7 +309,7 @@ def game_loop(stdscr):
                 for p in pickups:
                     if not p['taken'] and int(player_x)==int(p['x']) and int(player_y)==int(p['y']):
                         if p['type']=='ammo': ammo+=5
-                        else: player_health = min(player_health+5,20)
+                        else: player_health = min(player_health+5,25)
                         p['taken']=True
 
                 try: key = stdscr.getch()
@@ -294,6 +333,10 @@ def game_loop(stdscr):
                         bullets.append({'x':player_x,'y':player_y,'angle':player_angle})
                         ammo-=1
                         recoil=1
+                elif key in [ord('g'), ord('G')]:
+                    show_gun = not show_gun
+                elif key in [ord('1'), ord('2'), ord('3'), ord('4')]:
+                    current_weapon = int(chr(key))
 
                 stdscr.refresh()
                 time.sleep(0.02)

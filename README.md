@@ -24,6 +24,8 @@ S – Move backward
 A – Turn left
 D – Turn right
 Space – Shoot
+G - Toggle Gun visibility (1.4+)
+1-4 - Cycle Weapons (1.4+)
 Q – Quit
 ```
 

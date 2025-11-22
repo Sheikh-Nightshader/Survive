@@ -1,7 +1,7 @@
 # Survive a Doom-Style Terminal Raycaster (Python / Termux)
 
 Survive is a small first-person raycasting game written in Python.  
-It runs directly in the terminal (Android-Termux, Linux, macOS). The game draws a classic Doom-like 3D view using ASCII characters.
+It runs directly in the terminal (Android-Termux, Linux, Windows, macOS). The game draws a classic Doom-like 3D view using ASCII characters.
 
 You can walk around, shoot monsters, pick up ammo/health, and explore a generated map.
 

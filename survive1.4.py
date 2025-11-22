@@ -5,6 +5,7 @@
 #you can change the wall shading by replacing character shade=" .:-=+*#%@"
 import curses, math, time, random
 
+#editing these values below can cause major issues in laggy
 MAP_WIDTH = 50
 MAP_HEIGHT = 25
 FOV = math.pi/3

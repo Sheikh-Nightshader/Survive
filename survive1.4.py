@@ -9,7 +9,7 @@ import curses, math, time, random
 MAP_WIDTH = 50
 MAP_HEIGHT = 25
 FOV = math.pi/3
-DEPTH = 20
+DEPTH = 25
 SCREEN_WIDTH = 70
 SCREEN_HEIGHT = 25
 

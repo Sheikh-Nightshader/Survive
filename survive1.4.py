@@ -135,7 +135,7 @@ WEAPON_ART = {
         r"      | |   | |     ",
         r"     /  |___|  \    ",
     ],
-    4: [  # Plasma / sci-fi
+    4: [  # Plasma Rifle
         r"        |||||       ",
         r"        |###|       ",
         r"        |###|       ",

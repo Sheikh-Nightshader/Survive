@@ -43,6 +43,5 @@ You can edit these inside the script:
 Increasing `DEPTH` makes walls visible from farther away.
 
 ## Warning
-This is a simple learning project.  
-Not optimized and may use more CPU on bigger maps or higher view distance.  
-Use at your own risk.
+This is an Experimental project.  
+Not optimized and may use more CPU on bigger maps or higher view distance. Work in progress

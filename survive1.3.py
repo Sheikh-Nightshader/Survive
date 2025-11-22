@@ -1,6 +1,7 @@
 
 #!/usr/bin/env python3
-#This script is experimental and subbject to change
+#Sheikh Nightshader
+#This script is experimental and subject to change
 #you can change the wall shading by replacing character shade=" .:-=+*#%@"
 import curses, math, time, random
 

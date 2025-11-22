@@ -171,20 +171,17 @@ def draw_minimap(stdscr, MAP, player_x, player_y, enemies, pickups):
             ch = MAP[y][x]
             draw = ch if ch == '#' else ' '
             stdscr.addch(y//map_scale_y, x//map_scale_x, draw, curses.color_pair(7))
-    # draw pickups
     for p in pickups:
         if not p['taken']:
             px = int(p['x'])//map_scale_x
             py = int(p['y'])//map_scale_y
             symbol = 'H' if p['type']=='health' else 'A'
             stdscr.addch(py, px, symbol, curses.color_pair(4 if p['type']=='ammo' else 6))
-    # draw enemies
     for e in enemies:
         if e['alive']:
             ex = int(e['x'])//map_scale_x
             ey = int(e['y'])//map_scale_y
             stdscr.addch(ey, ex, 'E', curses.color_pair(2))
-    # draw player
     stdscr.addch(int(player_y)//map_scale_y, int(player_x)//map_scale_x, 'P', curses.color_pair(3))
 
 def title_screen(stdscr):
